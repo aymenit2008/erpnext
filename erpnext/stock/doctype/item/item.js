@@ -55,13 +55,8 @@ frappe.ui.form.on("Item", {
 
 		if (frm.doc.has_variants) {
 			frm.set_intro(__("This Item is a Template and cannot be used in transactions. Item attributes will be copied over into the variants unless 'No Copy' is set"), true);
-
 			frm.add_custom_button(__("Show Variants"), function() {
 				frappe.set_route("List", "Item", {"variant_of": frm.doc.name});
-			}, __("View"));
-
-			frm.add_custom_button(__("Item Variant Settings"), function() {
-				frappe.set_route("Form", "Item Variant Settings");
 			}, __("View"));
 
 			frm.add_custom_button(__("Variant Details Report"), function() {
@@ -115,13 +110,6 @@ frappe.ui.form.on("Item", {
 					}
 				});
 			}, __('Actions'));
-		} else {
-			frm.add_custom_button(__("Website Item"), function() {
-				frappe.db.get_value("Website Item", {item_code: frm.doc.name}, "name", (d) => {
-					if (!d.name) frappe.throw(__("Website Item not found"));
-					frappe.set_route("Form", "Website Item", d.name);
-				});
-			}, __("View"));
 		}
 
 		erpnext.item.edit_prices_button(frm);
@@ -142,6 +130,12 @@ frappe.ui.form.on("Item", {
 			}
 			frappe.set_route('Form', 'Item', new_item.name);
 		});
+
+		if(frm.doc.has_variants) {
+			frm.add_custom_button(__("Item Variant Settings"), function() {
+				frappe.set_route("Form", "Item Variant Settings");
+			}, __("View"));
+		}
 
 		const stock_exists = (frm.doc.__onload
 			&& frm.doc.__onload.stock_exists) ? 1 : 0;
@@ -171,21 +165,21 @@ frappe.ui.form.on("Item", {
 		frm.set_value('has_batch_no', 0);
 		frm.toggle_enable(['has_serial_no', 'serial_no_series'], !frm.doc.is_fixed_asset);
 
-		frappe.call({
-			method: "erpnext.stock.doctype.item.item.get_asset_naming_series",
-			callback: function(r) {
+		frm.call({
+			method: "set_asset_naming_series",
+			doc: frm.doc,
+			callback: function() {
 				frm.set_value("is_stock_item", frm.doc.is_fixed_asset ? 0 : 1);
-				frm.events.set_asset_naming_series(frm, r.message);
+				frm.trigger("set_asset_naming_series");
 			}
 		});
 
 		frm.trigger('auto_create_assets');
 	},
 
-	set_asset_naming_series: function(frm, asset_naming_series) {
-		if ((frm.doc.__onload && frm.doc.__onload.asset_naming_series) || asset_naming_series) {
-			let naming_series = (frm.doc.__onload && frm.doc.__onload.asset_naming_series) || asset_naming_series;
-			frm.set_df_property("asset_naming_series", "options", naming_series);
+	set_asset_naming_series: function(frm) {
+		if (frm.doc.__onload && frm.doc.__onload.asset_naming_series) {
+			frm.set_df_property("asset_naming_series", "options", frm.doc.__onload.asset_naming_series);
 		}
 	},
 
@@ -377,17 +371,6 @@ $.extend(erpnext.item, {
 			}
 		}
 
-		frm.set_query('default_provisional_account', 'item_defaults', (doc, cdt, cdn) => {
-			let row = locals[cdt][cdn];
-			return {
-				filters: {
-					"company": row.company,
-					"root_type": ["in", ["Liability", "Asset"]],
-					"is_group": 0
-				}
-			};
-		});
-
 	},
 
 	make_dashboard: function(frm) {
@@ -397,7 +380,8 @@ $.extend(erpnext.item, {
 		// Show Stock Levels only if is_stock_item
 		if (frm.doc.is_stock_item) {
 			frappe.require('assets/js/item-dashboard.min.js', function() {
-				const section = frm.dashboard.add_section('', __("Stock Levels"));
+				frm.dashboard.parent.find('.stock-levels').remove();
+				const section = frm.dashboard.add_section('', __("Stock Levels"), 'stock-levels');
 				erpnext.item.item_dashboard = new erpnext.stock.ItemDashboard({
 					parent: section,
 					item_code: frm.doc.name,
@@ -562,7 +546,7 @@ $.extend(erpnext.item, {
 			let selected_attributes = {};
 			me.multiple_variant_dialog.$wrapper.find('.form-column').each((i, col) => {
 				if(i===0) return;
-				let attribute_name = $(col).find('label').html().trim();
+				let attribute_name = $(col).find('label').html();
 				selected_attributes[attribute_name] = [];
 				let checked_opts = $(col).find('.checkbox input');
 				checked_opts.each((i, opt) => {
@@ -586,7 +570,8 @@ $.extend(erpnext.item, {
 								["parent","=", d.attribute]
 							],
 							fields: ["attribute_value"],
-							limit_page_length: 0,
+							limit_start: 0,
+							limit_page_length: 500,
 							parent: "Item Attribute",
 							order_by: "idx"
 						}
@@ -610,7 +595,7 @@ $.extend(erpnext.item, {
 							const increment = r.message.increment;
 
 							let values = [];
-							for(var i = from; i <= to; i = flt(i + increment, 6)) {
+							for(var i = from; i <= to; i += increment) {
 								values.push(i);
 							}
 							attr_val_fields[d.attribute] = values;

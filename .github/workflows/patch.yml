@@ -8,10 +8,6 @@ on:
   workflow_dispatch:
 
 
-concurrency:
-  group: patch-mariadb-v13-${{ github.event.number }}
-  cancel-in-progress: true
-
 jobs:
   test:
     runs-on: ubuntu-18.04
@@ -35,7 +31,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.6
 
       - name: Setup Node
         uses: actions/setup-node@v2

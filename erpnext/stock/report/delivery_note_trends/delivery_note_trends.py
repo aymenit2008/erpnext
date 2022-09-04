@@ -8,8 +8,7 @@ from erpnext.controllers.trends import get_columns, get_data
 
 
 def execute(filters=None):
-	if not filters:
-		filters = {}
+	if not filters: filters ={}
 	data = []
 	conditions = get_columns(filters, "Delivery Note")
 	data = get_data(filters, conditions)
@@ -17,7 +16,6 @@ def execute(filters=None):
 	chart_data = get_chart_data(data, filters)
 
 	return conditions["columns"], data, None, chart_data
-
 
 def get_chart_data(data, filters):
 	if not data:
@@ -29,7 +27,7 @@ def get_chart_data(data, filters):
 		# consider only consolidated row
 		data = [row for row in data if row[0]]
 
-	data = sorted(data, key=lambda i: i[-1], reverse=True)
+	data = sorted(data, key = lambda i: i[-1],reverse=True)
 
 	if len(data) > 10:
 		# get top 10 if data too long
@@ -41,8 +39,13 @@ def get_chart_data(data, filters):
 
 	return {
 		"data": {
-			"labels": labels,
-			"datasets": [{"name": _("Total Delivered Amount"), "values": datapoints}],
+			"labels" : labels,
+			"datasets" : [
+				{
+				"name": _("Total Delivered Amount"),
+				"values": datapoints
+				}
+			]
 		},
-		"type": "bar",
+		"type" : "bar"
 	}

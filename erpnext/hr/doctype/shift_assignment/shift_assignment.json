@@ -25,8 +25,7 @@
    "fieldtype": "Link",
    "label": "Employee",
    "options": "Employee",
-   "reqd": 1,
-   "search_index": 1
+   "reqd": 1
   },
   {
    "fetch_from": "employee.employee_name",
@@ -49,8 +48,7 @@
    "in_list_view": 1,
    "label": "Shift Type",
    "options": "Shift Type",
-   "reqd": 1,
-   "search_index": 1
+   "reqd": 1
   },
   {
    "fieldname": "column_break_3",
@@ -107,7 +105,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2022-07-19 15:27:54.310773",
+ "modified": "2020-06-15 14:27:54.310773",
  "modified_by": "Administrator",
  "module": "HR",
  "name": "Shift Assignment",

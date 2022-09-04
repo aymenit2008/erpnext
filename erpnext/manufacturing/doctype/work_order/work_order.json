@@ -333,13 +333,12 @@
    "options": "fa fa-wrench"
   },
   {
+   "default": "Work Order",
    "depends_on": "operations",
-   "fetch_from": "bom_no.transfer_material_against",
-   "fetch_if_empty": 1,
    "fieldname": "transfer_material_against",
    "fieldtype": "Select",
    "label": "Transfer Material Against",
-   "options": "\nWork Order\nJob Card"
+   "options": "Work Order\nJob Card"
   },
   {
    "fieldname": "operations",
@@ -575,7 +574,7 @@
  "image_field": "image",
  "is_submittable": 1,
  "links": [],
- "modified": "2022-01-24 21:18:12.160114",
+ "modified": "2021-11-08 17:36:07.016300",
  "modified_by": "Administrator",
  "module": "Manufacturing",
  "name": "Work Order",
@@ -608,7 +607,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "ASC",
- "states": [],
  "title_field": "production_item",
  "track_changes": 1,
  "track_seen": 1

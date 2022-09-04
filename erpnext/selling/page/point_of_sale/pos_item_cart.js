@@ -130,10 +130,10 @@ erpnext.PointOfSale.ItemCart = class {
 			},
 			cols: 5,
 			keys: [
-				[ 1, 2, 3, 'Quantity' ],
-				[ 4, 5, 6, 'Discount' ],
-				[ 7, 8, 9, 'Rate' ],
-				[ '.', 0, 'Delete', 'Remove' ]
+				[ 1, 2, 3, __('Quantity') ],
+				[ 4, 5, 6, __('Discount') ],
+				[ 7, 8, 9, __('Rate') ],
+				[ '.', 0, __('Delete'), __('Remove') ]
 			],
 			css_classes: [
 				[ '', '', '', 'col-span-2' ],
@@ -191,10 +191,10 @@ erpnext.PointOfSale.ItemCart = class {
 			this.numpad_value = '';
 		});
 
-		this.$component.on('click', '.checkout-btn', async function() {
+		this.$component.on('click', '.checkout-btn', function() {
 			if ($(this).attr('style').indexOf('--blue-500') == -1) return;
 
-			await me.events.checkout();
+			me.events.checkout();
 			me.toggle_checkout_btn(false);
 
 			me.allow_discount_change && me.$add_discount_elem.removeClass("d-none");
@@ -524,8 +524,7 @@ erpnext.PointOfSale.ItemCart = class {
 			const currency = this.events.get_frm().doc.currency;
 			const taxes_html = taxes.map(t => {
 				if (t.tax_amount_after_discount_amount == 0.0) return;
-				// if tax rate is 0, don't print it.
-				const description = /[0-9]+/.test(t.description) ? t.description : ((t.rate != 0) ? `${t.description} @ ${t.rate}%`: t.description);
+				const description = /[0-9]+/.test(t.description) ? t.description : `${t.description} @ ${t.rate}%`;
 				return `<div class="tax-row">
 					<div class="tax-label">${description}</div>
 					<div class="tax-value">${format_currency(t.tax_amount_after_discount_amount, currency)}</div>
@@ -986,7 +985,6 @@ erpnext.PointOfSale.ItemCart = class {
 		$(frm.wrapper).off('refresh-fields');
 		$(frm.wrapper).on('refresh-fields', () => {
 			if (frm.doc.items.length) {
-				this.$cart_items_wrapper.html('');
 				frm.doc.items.forEach(item => {
 					this.update_item_html(item);
 				});

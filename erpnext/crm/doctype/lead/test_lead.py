@@ -6,8 +6,7 @@ import unittest
 
 import frappe
 
-test_records = frappe.get_test_records("Lead")
-
+test_records = frappe.get_test_records('Lead')
 
 class TestLead(unittest.TestCase):
 	def test_make_customer(self):

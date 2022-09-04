@@ -43,6 +43,8 @@ frappe.ui.form.on("Purchase Order", {
 		erpnext.queries.setup_queries(frm, "Warehouse", function() {
 			return erpnext.queries.warehouse(frm.doc);
 		});
+
+		erpnext.accounts.dimensions.setup_dimension_filters(frm, frm.doctype);
 	},
 
 	apply_tds: function(frm) {
@@ -425,7 +427,7 @@ erpnext.buying.PurchaseOrderController = erpnext.buying.BuyingController.extend(
 						company: me.frm.doc.company
 					},
 					allow_child_item_selection: true,
-					child_fieldname: "items",
+					child_fielname: "items",
 					child_columns: ["item_code", "qty"]
 				})
 			}, __("Get Items From"));

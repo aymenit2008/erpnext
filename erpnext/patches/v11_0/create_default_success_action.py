@@ -1,3 +1,4 @@
+
 import frappe
 
 from erpnext.setup.install import create_default_success_action

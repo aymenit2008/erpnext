@@ -146,7 +146,6 @@ frappe.ui.form.on("Leave Application", {
 	},
 
 	to_date: function(frm) {
-		frm.trigger("make_dashboard");
 		frm.trigger("half_day_datepicker");
 		frm.trigger("calculate_total_days");
 	},
@@ -173,7 +172,7 @@ frappe.ui.form.on("Leave Application", {
 					date: frm.doc.from_date,
 					to_date: frm.doc.to_date,
 					leave_type: frm.doc.leave_type,
-					consider_all_leaves_in_the_allocation_period: 1
+					consider_all_leaves_in_the_allocation_period: true
 				},
 				callback: function (r) {
 					if (!r.exc && r.message) {

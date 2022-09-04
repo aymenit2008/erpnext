@@ -12,6 +12,8 @@ frappe.provide("erpnext.selling");
 erpnext.selling.SellingController = erpnext.TransactionController.extend({
 	setup: function() {
 		this._super();
+		this.frm.add_fetch("sales_partner", "commission_rate", "commission_rate");
+		this.frm.add_fetch("sales_person", "commission_rate", "commission_rate");
 	},
 
 	onload: function() {
@@ -41,7 +43,6 @@ erpnext.selling.SellingController = erpnext.TransactionController.extend({
 		me.frm.set_query('shipping_address_name', erpnext.queries.address_query);
 		me.frm.set_query('dispatch_address_name', erpnext.queries.dispatch_address_query);
 
-		erpnext.accounts.dimensions.setup_dimension_filters(me.frm, me.frm.doctype);
 
 		if(this.frm.fields_dict.selling_price_list) {
 			this.frm.set_query("selling_price_list", function() {
@@ -63,7 +64,7 @@ erpnext.selling.SellingController = erpnext.TransactionController.extend({
 			this.frm.set_query("item_code", "items", function() {
 				return {
 					query: "erpnext.controllers.queries.item_query",
-					filters: {'is_sales_item': 1, 'customer': cur_frm.doc.customer, 'has_variants': 0}
+					filters: {'is_sales_item': 1, 'customer': cur_frm.doc.customer}
 				}
 			});
 		}
@@ -226,11 +227,11 @@ erpnext.selling.SellingController = erpnext.TransactionController.extend({
 					},
 					callback:function(r){
 						if (in_list(['Delivery Note', 'Sales Invoice'], doc.doctype)) {
+
 							if (doc.doctype === 'Sales Invoice' && (!doc.update_stock)) return;
-							if (has_batch_no) {
-								me.set_batch_number(cdt, cdn);
-								me.batch_no(doc, cdt, cdn);
-							}
+
+							me.set_batch_number(cdt, cdn);
+							me.batch_no(doc, cdt, cdn);
 						}
 					}
 				});

@@ -1,9 +1,13 @@
+
+
 def get_data():
 	return {
-		"transactions": [
+		'transactions': [
 			{
-				"items": ["Employee", "Leave Period"],
+				'items': ['Employee', 'Leave Period'],
 			},
-			{"items": ["Employee Onboarding Template", "Employee Separation Template"]},
+			{
+				'items': ['Employee Onboarding Template', 'Employee Separation Template']
+			}
 		]
 	}

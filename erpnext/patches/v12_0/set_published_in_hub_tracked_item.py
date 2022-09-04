@@ -1,3 +1,4 @@
+
 import frappe
 
 
@@ -6,9 +7,7 @@ def execute():
 	if not frappe.db.a_row_exists("Hub Tracked Item"):
 		return
 
-	frappe.db.sql(
-		"""
+	frappe.db.sql('''
 		Update `tabHub Tracked Item`
 		SET published = 1
-	"""
-	)
+	''')

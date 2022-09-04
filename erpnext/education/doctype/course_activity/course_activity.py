@@ -11,6 +11,7 @@ class CourseActivity(Document):
 	def validate(self):
 		self.check_if_enrolled()
 
+
 	def check_if_enrolled(self):
 		if frappe.db.exists("Course Enrollment", self.enrollment):
 			return True

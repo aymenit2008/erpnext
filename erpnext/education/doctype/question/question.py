@@ -8,6 +8,7 @@ from frappe.model.document import Document
 
 
 class Question(Document):
+
 	def validate(self):
 		self.check_at_least_one_option()
 		self.check_minimum_one_correct_answer()

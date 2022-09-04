@@ -6,8 +6,7 @@ import frappe
 
 def execute():
 	frappe.reload_doc("manufacturing", "doctype", "production_plan")
-	frappe.db.sql(
-		"""
+	frappe.db.sql("""
 		UPDATE `tabProduction Plan` ppl
 		SET status = "Completed"
 		WHERE ppl.name IN (
@@ -29,5 +28,4 @@ def execute():
 				HAVING should_set = 1
 			) ss
 		)
-	"""
-	)
+	""")

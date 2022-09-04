@@ -8,7 +8,6 @@ frappe.provide("erpnext.journal_entry");
 frappe.ui.form.on("Journal Entry", {
 	setup: function(frm) {
 		frm.add_fetch("bank_account", "account", "account");
-		frm.ignore_doctypes_on_cancel_all = ['Sales Invoice', 'Purchase Invoice'];
 	},
 
 	refresh: function(frm) {
@@ -32,7 +31,7 @@ frappe.ui.form.on("Journal Entry", {
 		if(frm.doc.docstatus==1) {
 			frm.add_custom_button(__('Reverse Journal Entry'), function() {
 				return erpnext.journal_entry.reverse_journal_entry(frm);
-			}, __('Actions'));
+			}, __('Make'));
 		}
 
 		if (frm.doc.__islocal) {
@@ -146,6 +145,22 @@ frappe.ui.form.on("Journal Entry", {
 								update_jv_details(frm.doc, [r.message]);
 							}
 						}
+					}
+				});
+			}
+			else if(frm.doc.voucher_type=="Opening Entry") {
+				return frappe.call({
+					type:"GET",
+					method: "erpnext.accounts.doctype.journal_entry.journal_entry.get_opening_accounts",
+					args: {
+						"company": frm.doc.company
+					},
+					callback: function(r) {
+						frappe.model.clear_table(frm.doc, "accounts");
+						if(r.message) {
+							update_jv_details(frm.doc, r.message);
+						}
+						cur_frm.set_value("is_opening", "Yes");
 					}
 				});
 			}

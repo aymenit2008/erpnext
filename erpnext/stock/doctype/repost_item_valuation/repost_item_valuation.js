@@ -24,8 +24,7 @@ frappe.ui.form.on('Repost Item Valuation', {
 			frm.set_query("voucher_no", () => {
 				return {
 					filters: {
-						company: frm.doc.company,
-						docstatus: 1
+						company: frm.doc.company
 					}
 				};
 			});
