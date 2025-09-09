@@ -40,6 +40,8 @@ erpnext.selling.SellingController = class SellingController extends erpnext.Tran
 		me.frm.set_query('customer_address', erpnext.queries.address_query);
 		me.frm.set_query('shipping_address_name', erpnext.queries.address_query);
 		me.frm.set_query('dispatch_address_name', erpnext.queries.dispatch_address_query);
+		me.frm.set_query('company_address', erpnext.queries.company_address_query);
+		me.frm.set_query('company_contact_person', erpnext.queries.company_contact_query);
 
 		erpnext.accounts.dimensions.setup_dimension_filters(me.frm, me.frm.doctype);
 
@@ -200,6 +202,10 @@ erpnext.selling.SellingController = class SellingController extends erpnext.Tran
 			item.serial_no = null;
 		}
 
+		if (doc.docstatus === 0 && doc.is_return && !doc.return_against) {
+			item.incoming_rate = 0.0;
+		}
+
 		var has_batch_no;
 		frappe.db.get_value('Item', {'item_code': item.item_code}, 'has_batch_no', (r) => {
 			has_batch_no = r && r.has_batch_no;
@@ -215,7 +221,7 @@ erpnext.selling.SellingController = class SellingController extends erpnext.Tran
 						serial_no: item.serial_no || "",
 					},
 					callback:function(r){
-						if (in_list(['Delivery Note', 'Sales Invoice'], doc.doctype)) {
+						if (['Delivery Note', 'Sales Invoice'].includes(doc.doctype)) {
 							if (doc.doctype === 'Sales Invoice' && (!doc.update_stock)) return;
 							if (has_batch_no) {
 								me.set_batch_number(cdt, cdn);
@@ -328,7 +334,7 @@ erpnext.selling.SellingController = class SellingController extends erpnext.Tran
 		if ((doc.packed_items || []).length) {
 			$(cur_frm.fields_dict.packing_list.row.wrapper).toggle(true);
 
-			if (in_list(['Delivery Note', 'Sales Invoice'], doc.doctype)) {
+			if (['Delivery Note', 'Sales Invoice'].includes(doc.doctype)) {
 				var help_msg = "<div class='alert alert-warning'>" +
 					__("For 'Product Bundle' items, Warehouse, Serial No and Batch No will be considered from the 'Packing List' table. If Warehouse and Batch No are same for all packing items for any 'Product Bundle' item, those values can be entered in the main Item table, values will be copied to 'Packing List' table.")+
 				"</div>";
@@ -336,7 +342,7 @@ erpnext.selling.SellingController = class SellingController extends erpnext.Tran
 			}
 		} else {
 			$(cur_frm.fields_dict.packing_list.row.wrapper).toggle(false);
-			if (in_list(['Delivery Note', 'Sales Invoice'], doc.doctype)) {
+			if (['Delivery Note', 'Sales Invoice'].includes(doc.doctype)) {
 				frappe.meta.get_docfield(doc.doctype, 'product_bundle_help', doc.name).options = '';
 			}
 		}
@@ -363,7 +369,7 @@ erpnext.selling.SellingController = class SellingController extends erpnext.Tran
 	conversion_factor(doc, cdt, cdn, dont_fetch_price_list_rate) {
 	    super.conversion_factor(doc, cdt, cdn, dont_fetch_price_list_rate);
 		if(frappe.meta.get_docfield(cdt, "stock_qty", cdn) &&
-			in_list(['Delivery Note', 'Sales Invoice'], doc.doctype)) {
+			['Delivery Note', 'Sales Invoice'].includes(doc.doctype)) {
 				if (doc.doctype === 'Sales Invoice' && (!doc.update_stock)) return;
 				this.set_batch_number(cdt, cdn);
 			}
@@ -372,7 +378,7 @@ erpnext.selling.SellingController = class SellingController extends erpnext.Tran
 	qty(doc, cdt, cdn) {
 		super.qty(doc, cdt, cdn);
 
-		if(in_list(['Delivery Note', 'Sales Invoice'], doc.doctype)) {
+		if(['Delivery Note', 'Sales Invoice'].includes(doc.doctype)) {
 			if (doc.doctype === 'Sales Invoice' && (!doc.update_stock)) return;
 			this.set_batch_number(cdt, cdn);
 		}
@@ -428,10 +434,15 @@ erpnext.selling.SellingController = class SellingController extends erpnext.Tran
 			})
 		}
 	}
+
+	coupon_code() {
+		this.frm.set_value("discount_amount", 0);
+		this.frm.set_value("additional_discount_percentage", 0);
+	}
 };
 
 frappe.ui.form.on(cur_frm.doctype,"project", function(frm) {
-	if(in_list(["Delivery Note", "Sales Invoice"], frm.doc.doctype)) {
+	if(["Delivery Note", "Sales Invoice"].includes(frm.doc.doctype)) {
 		if(frm.doc.project) {
 			frappe.call({
 				method:'erpnext.projects.doctype.project.project.get_cost_center_name' ,

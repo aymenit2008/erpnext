@@ -109,8 +109,9 @@
   "dispatch_address",
   "company_address_section",
   "company_address",
-  "column_break_101",
   "company_address_display",
+  "column_break_101",
+  "company_contact_person",
   "terms_tab",
   "tc_name",
   "terms",
@@ -301,7 +302,8 @@
    "no_copy": 1,
    "options": "Delivery Note",
    "print_hide": 1,
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "collapsible": 1,
@@ -679,7 +681,7 @@
   },
   {
    "fieldname": "other_charges_calculation",
-   "fieldtype": "Long Text",
+   "fieldtype": "Text Editor",
    "label": "Taxes and Charges Calculation",
    "no_copy": 1,
    "oldfieldtype": "HTML",
@@ -1394,13 +1396,20 @@
    "fieldname": "named_place",
    "fieldtype": "Data",
    "label": "Named Place"
+  },
+  {
+   "fieldname": "company_contact_person",
+   "fieldtype": "Link",
+   "label": "Company Contact Person",
+   "options": "Contact",
+   "print_hide": 1
   }
  ],
  "icon": "fa fa-truck",
  "idx": 146,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-09-04 14:15:28.363184",
+ "modified": "2024-11-26 12:44:28.258215",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Delivery Note",

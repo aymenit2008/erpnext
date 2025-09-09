@@ -76,6 +76,11 @@ def get_statement_dict(doc, get_statement_dict=False):
 		)
 
 		filters = get_common_filters(doc)
+		if doc.ignore_exchange_rate_revaluation_journals:
+			filters.update({"ignore_err": True})
+
+		if doc.ignore_cr_dr_notes:
+			filters.update({"ignore_cr_dr_notes": True})
 
 		if doc.report == "General Ledger":
 			filters.update(get_gl_filters(doc, entry, tax_id, presentation_currency))
@@ -102,7 +107,7 @@ def set_ageing(doc, entry):
 	ageing_filters = frappe._dict(
 		{
 			"company": doc.company,
-			"report_date": doc.to_date,
+			"report_date": doc.posting_date,
 			"ageing_based_on": doc.ageing_based_on,
 			"range1": 30,
 			"range2": 60,
@@ -127,6 +132,7 @@ def get_common_filters(doc):
 			"finance_book": doc.finance_book if doc.finance_book else None,
 			"account": [doc.account] if doc.account else None,
 			"cost_center": [cc.cost_center_name for cc in doc.cost_center],
+			"show_remarks": doc.show_remarks,
 		}
 	)
 
@@ -139,7 +145,7 @@ def get_gl_filters(doc, entry, tax_id, presentation_currency):
 		"party": [entry.customer],
 		"party_name": [entry.customer_name] if entry.customer_name else None,
 		"presentation_currency": presentation_currency,
-		"group_by": doc.group_by,
+		"categorize_by": doc.categorize_by,
 		"currency": doc.currency,
 		"project": [p.project_name for p in doc.project],
 		"show_opening_entries": 0,
@@ -171,17 +177,21 @@ def get_ar_filters(doc, entry):
 
 def get_html(doc, filters, entry, col, res, ageing):
 	base_template_path = "frappe/www/printview.html"
-	template_path = (
-		"erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.html"
-		if doc.report == "General Ledger"
-		else "erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html"
-	)
+	template_path = "erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html"
+	if doc.report == "General Ledger":
+		template_path = (
+			"erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.html"
+		)
+
+	process_soa_html = frappe.get_hooks("process_soa_html")
+	# fetching custom print format for Process Statement of Accounts
+	if process_soa_html and process_soa_html.get(doc.report):
+		template_path = process_soa_html[doc.report][-1]
 
 	if doc.letter_head:
 		from frappe.www.printview import get_letter_head
 
 		letter_head = get_letter_head(doc, 0)
-
 	html = frappe.render_template(
 		template_path,
 		{
@@ -197,7 +207,6 @@ def get_html(doc, filters, entry, col, res, ageing):
 			else None,
 		},
 	)
-
 	html = frappe.render_template(
 		base_template_path,
 		{"body": html, "css": get_print_style(), "title": "Statement For " + entry.customer},
@@ -256,9 +265,12 @@ def get_recipients_and_cc(customer, doc):
 	recipients = []
 	for clist in doc.customers:
 		if clist.customer == customer:
-			recipients.append(clist.billing_email)
+			if clist.billing_email:
+				for email in clist.billing_email.split(","):
+					recipients.append(email.strip())
 			if doc.primary_mandatory and clist.primary_email:
-				recipients.append(clist.primary_email)
+				for email in clist.primary_email.split(","):
+					recipients.append(email.strip())
 	cc = []
 	if doc.cc_to != "":
 		try:
@@ -395,11 +407,16 @@ def send_emails(document_name, from_scheduler=False, posting_date=None):
 			subject = frappe.render_template(doc.subject, context)
 			message = frappe.render_template(doc.body, context)
 
+			if doc.sender:
+				sender_email = frappe.db.get_value("Email Account", doc.sender, "email_id")
+			else:
+				sender_email = frappe.session.user
+
 			frappe.enqueue(
 				queue="short",
 				method=frappe.sendmail,
 				recipients=recipients,
-				sender=doc.sender or frappe.session.user,
+				sender=sender_email,
 				cc=cc,
 				subject=subject,
 				message=message,
@@ -416,9 +433,7 @@ def send_emails(document_name, from_scheduler=False, posting_date=None):
 			else:
 				new_to_date = add_months(new_to_date, 1 if doc.frequency == "Monthly" else 3)
 			new_from_date = add_months(new_to_date, -1 * doc.filter_duration)
-			doc.add_comment(
-				"Comment", "Emails sent on: " + frappe.utils.format_datetime(frappe.utils.now())
-			)
+			doc.add_comment("Comment", "Emails sent on: " + frappe.utils.format_datetime(frappe.utils.now()))
 			if doc.report == "General Ledger":
 				doc.db_set("to_date", new_to_date, commit=True)
 				doc.db_set("from_date", new_from_date, commit=True)
